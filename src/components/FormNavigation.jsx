@@ -1,12 +1,17 @@
 import React from "react";
 
 const FormNavigation = ({ hasPrev, onPrev, hasNext, onNext, isFinal, onSubmit }) => {
+  const baseButtonStyles = 'font-semibold py-3 px-8 rounded-full shadow-lg transform transition-all duration-200 ease-in-out';
+  const primaryButtonStyles = `${baseButtonStyles} text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:scale-105 hover:shadow-2xl`;
+  const secondaryButtonStyles = `${baseButtonStyles} text-gray-800 bg-gray-100 hover:bg-gray-200 hover:scale-105`;
+
   return (
-    <div className="flex justify-between mt-6">
+    <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
       {hasPrev ? (
         <button
+          type="button"
           onClick={onPrev}
-          className="bg-gray-300 hover:bg-gray-400 text-black font-semibold py-2 px-4 rounded"
+          className={secondaryButtonStyles}
         >
           Back
         </button>
@@ -16,8 +21,9 @@ const FormNavigation = ({ hasPrev, onPrev, hasNext, onNext, isFinal, onSubmit })
 
       {hasNext && (
         <button
+          type="button"
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+          className={primaryButtonStyles}
         >
           Next
         </button>
@@ -25,8 +31,9 @@ const FormNavigation = ({ hasPrev, onPrev, hasNext, onNext, isFinal, onSubmit })
 
       {isFinal && (
         <button
+          type="button"
           onClick={onSubmit}
-          className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+          className={primaryButtonStyles}
         >
           Submit
         </button>
