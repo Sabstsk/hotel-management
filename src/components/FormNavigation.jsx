@@ -1,6 +1,6 @@
 import React from "react";
 
-const FormNavigation = ({ hasPrev, onPrev, hasNext, onNext, isFinal, onSubmit }) => {
+const FormNavigation = ({ hasPrev, onPrev, hasNext, onNext, isFinal, onSubmit, nextLabel = 'Next' }) => {
   const baseButtonStyles = 'font-semibold py-3 px-8 rounded-full shadow-lg transform transition-all duration-200 ease-in-out';
   const primaryButtonStyles = `${baseButtonStyles} text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:scale-105 hover:shadow-2xl`;
   const secondaryButtonStyles = `${baseButtonStyles} text-gray-800 bg-gray-100 hover:bg-gray-200 hover:scale-105`;
@@ -25,7 +25,7 @@ const FormNavigation = ({ hasPrev, onPrev, hasNext, onNext, isFinal, onSubmit })
           onClick={onNext}
           className={primaryButtonStyles}
         >
-          Next
+          {nextLabel}
         </button>
       )}
 
