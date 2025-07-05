@@ -10,7 +10,7 @@ const Step2BookingDetails = ({ formData, setFormData, nextStep, prevStep }) => {
   return (
     <div className="flex flex-col md:flex-row items-center justify-center gap-8">
       <div className="md:w-1/2">
-        <img src="/public/img3.jpg" alt="Hotel Room" className="hero" />
+        <img src="/images/img3.jpg" alt="Hotel Room" className="hero" />
       </div>
       <div className="md:w-1/2 w-full">
         <h2 className="text-2xl font-bold mb-6 text-center">Booking Details</h2>

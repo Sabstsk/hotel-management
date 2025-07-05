@@ -28,7 +28,7 @@ const Step1BasicInfo = ({ formData, setFormData, nextStep }) => {
   return (
     <div className="flex flex-col md:flex-row items-center justify-center gap-8">
       <div className="md:w-1/2">
-        <img src="/public/img2.jpg" alt="Hotel Lobby" className="hero" />
+        <img src="/images/img2.jpg" alt="Hotel Lobby" className="hero" />
       </div>
       <div className="md:w-1/2 w-full">
         <form onSubmit={formik.handleSubmit}>

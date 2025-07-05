@@ -63,7 +63,7 @@ const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit }) => {
   return (
     <div className="flex flex-col md:flex-row items-center justify-center gap-8">
       <div className="md:w-1/2">
-        <img src="/public/img1.jpg" alt="Payment Options" className="hero" />
+        <img src="/images/img1.jpg" alt="Payment Options" className="hero" />
       </div>
       <div className="md:w-1/2 w-full">
         <h2 className="text-2xl font-bold mb-6 text-center">Payment Method</h2>
