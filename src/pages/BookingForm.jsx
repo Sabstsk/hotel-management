@@ -13,6 +13,7 @@ const steps = [
 const BookingForm = () => {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [submissionAttempt, setSubmissionAttempt] = useState(0);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -29,6 +30,8 @@ const BookingForm = () => {
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
+  const goToFirstStep = () => setStep(1);
+  const incrementSubmissionAttempt = () => setSubmissionAttempt(prev => prev + 1);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -73,6 +76,9 @@ const BookingForm = () => {
                 setFormData={setFormData}
                 prevStep={prevStep}
                 onSubmit={() => setSubmitted(true)}
+                submissionAttempt={submissionAttempt}
+                incrementSubmissionAttempt={incrementSubmissionAttempt}
+                goToFirstStep={goToFirstStep}
               />
             )}
           </>
